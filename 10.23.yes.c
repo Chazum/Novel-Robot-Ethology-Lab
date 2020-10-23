@@ -245,4 +245,3 @@ bool timer_elapsed(){
 float map(float value, float start_range_low, float start_range_high, float target_range_low, float target_range_high){
 	return target_range_low + ((value - start_range_low)/(start_range_high - start_range_low)) * (target_range_high - target_range_low);
 }
-
