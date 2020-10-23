@@ -57,7 +57,8 @@ int left_photo_value, right_photo_value, front_bump_value, back_bump_value, left
 //threshold values
 int avoid_threshold   = 300; 	//the absolute difference between IR readings has to be above this for the avoid action
 int approach_threshold = 300;	//the absolute difference between IR readings has to be below this for the approach action
-int photo_threshold = 8;		//the absolute difference between photo sensor readings has to be above this for seek light/dark actions
+int photo_threshold = 20;		//the absolute difference between photo sensor readings has to be above this for seek 
+//Light threshold change
 float photo_max = 200.0; 		//approximate max possible photo reading (set from observation)
 
 //timer
@@ -84,19 +85,9 @@ int main()
 		read_sensors(); //read all sensors and set global variables of their readouts
 		
 		if(timer_elapsed()){ //any time a drive message is called, the timer is updated.  Until it is called again this should always return true
-			
-			//subsumption hierarchy:  front, back, avoid, seek light, cruise straight
-			if(is_front_bump()){
-				escape_front();
-			}
-			else if(is_back_bump()){
-				escape_back();
-			}
-			else if(is_above_distance_threshold(avoid_threshold)){
-				avoid();
-			}
-			else if(is_above_photo_differential(photo_threshold)){
-				seek_light();
+			//happy dance
+			if(is_above_photo_differential(photo_threshold)){
+				happy_dance();
 			}
 			else{
 				cruise_straight();
@@ -130,8 +121,8 @@ void read_sensors(){
 
 /******************************************************/
 bool is_above_photo_differential(int threshold){
-	int photo_difference = left_photo_value - right_photo_value;	//get the difference between the photo values
-	return (abs(photo_difference) > threshold); 					//returns true if the absolute difference between photo sensors is greater than the threshold, otherwise false
+	int photo_sum = left_photo_value + right_photo_value;	//get the difference between the photo values
+	return (abs(photo_sum) > threshold); 					//returns true if the absolute difference between photo sensors is greater than the threshold, otherwise false
 }
 /******************************************************/
 bool is_above_distance_threshold(int threshold){
@@ -169,13 +160,7 @@ void cruise_straight(){
 	drive(0.50, 0.50, 0.5);
 }
 /******************************************************/
-void cruise_arc(){
-	drive(0.25, 0.4, 0.5);
-}
-/******************************************************/
-void stop(){
-	drive(0.0, 0.0, 0.25);
-}
+//deleted stop and cruise arc
 /******************************************************/
 void escape_front(){
 	float bump_midpoint = 250.0;
@@ -217,19 +202,8 @@ void seek_light(){
 	}
 	drive(left_servo, right_servo, 0.25);
 }
-/******************************************************/
-void seek_dark(){
-	float left_servo;
-	float right_servo;
-	int photo_difference = left_photo_value - right_photo_value;
-	if(abs(photo_difference) > photo_threshold){
-		//if(photo_difference > photo_max) photo_difference = (int)photo_max;
-		int multiplier = (photo_difference > 1)? -1:1;
-		right_servo  = 0.2*multiplier;//(float)photo_difference/photo_max;
-		left_servo = -right_servo;
-	}
-	drive(left_servo, right_servo, 0.25);
-}
+
+//deleted seek dark
 /******************************************************/
 void avoid(){
 	if(left_ir_value > avoid_threshold){
@@ -249,6 +223,17 @@ void approach(){
 		drive(0.9, 0.1, 0.5);
 	}
 }
+/*****************************************************/
+void happy_dance(){
+	float left_servo;
+	float right_servo;
+	int photo_sum = left_photo_value + right_photo_value;
+	if(abs(photo_sum) > photo_threshold){
+		drive(0.7, 0.0, 0.3);
+		drive(0.0, 0.7, 0.3);
+		drive(0.0, 0.0, 1000);
+	}
+}
 
 //================================================================================================================//
 //========================================================HELPERS=================================================//
@@ -260,3 +245,4 @@ bool timer_elapsed(){
 float map(float value, float start_range_low, float start_range_high, float target_range_low, float target_range_high){
 	return target_range_low + ((value - start_range_low)/(start_range_high - start_range_low)) * (target_range_high - target_range_low);
 }
+
