@@ -60,6 +60,9 @@ int approach_threshold = 300;	//the absolute difference between IR readings has 
 int photo_threshold = 8;		//the absolute difference between photo sensor readings has to be above this for seek light/dark actions
 float photo_max = 200.0; 		//approximate max possible photo reading (set from observation)
 
+//local photo_threshold
+int local_photo_threshold = 20;
+
 //timer
 int timer_duration = 500;		//the time in milliseconds to wait between calling action commands.  This value is changed by each drive command called by actions
 unsigned long start_time = 0;	//store the system time each time we start an action so we can see if our time has elapsed without a blocking delay
@@ -84,26 +87,29 @@ int main()
 		read_sensors(); //read all sensors and set global variables of their readouts
 		
 		if(timer_elapsed()){ //any time a drive message is called, the timer is updated.  Until it is called again this should always return true
-			
+		//start of "Happy Dance" function
+			if(abs(photo_difference) > local_photo_threshold){
+				drive(0.7, 0.0, 0.3); //whatever drive needed to complete a 360)
+			}
+		}
 			//subsumption hierarchy:  front, back, avoid, seek light, cruise straight
-			if(is_front_bump()){
-				escape_front();
-			}
-			else if(is_back_bump()){
-				escape_back();
-			}
-			else if(is_above_distance_threshold(avoid_threshold)){
-				avoid();
-			}
-			else if(is_above_photo_differential(photo_threshold)){
-				seek_light();
-			}
+			//if(is_front_bump()){
+			//	escape_front();
+			//}
+			//else if(is_back_bump()){
+			//	escape_back();
+			//}
+			//else if(is_above_distance_threshold(avoid_threshold)){
+			//	avoid();
+			//}
+			//else if(is_above_photo_differential(photo_threshold)){
+			//	seek_light();
+			//}
 			else{
 				cruise_straight();
 			}
 		}//end if timer elapsed
 	}//end while true
-	
 	return 0; //due to infinite while loop, we will never get here
 }
 
