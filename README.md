@@ -2,5 +2,5 @@
 Vassar College
 COGS-211 Perception and Action
 Novel Behavior Robot Ethology Lab
-Kenneth Livingson
+Kenneth Livingston
 Chaz Harrison, Victoria Palone, Laura Hoban
